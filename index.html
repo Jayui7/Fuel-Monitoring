@@ -208,6 +208,9 @@ reader.onload = function(){
 
     fetch(SCRIPT_URL, {
         method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify({
             municipality,
             dateFolder: today,
@@ -230,7 +233,7 @@ reader.onload = function(){
     })
     .catch(err => {
         document.getElementById("status").innerHTML =
-        "<span class='error'>" + err + "</span>";
+        "<span class='error'>Network Error: Check deployment</span>";
     });
 
 };
