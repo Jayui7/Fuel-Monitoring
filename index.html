@@ -158,12 +158,10 @@ Longitude: <span id="lng">...</span>
 <script>
 
 const SCRIPT_URL =
-"https://script.google.com/macros/s/AKfycbwdoFIUo97WbFAaNeJMkEXoS8UyAbN9fl2HW-9H8mgKX8kY9JDsqRQ1E2NckZaDtrtQ/exec";
+"https://script.google.com/macros/s/AKfycbwSAF6C7XbKu1r5PdQGzd5Vg3nrKjFbYZAc5pWAn65hTc_sdy_-WIwAw3GU5sphrPbt/exec";
 
 const today = new Date().toISOString().split("T")[0];
 document.getElementById("date").value = today;
-
-const deviceInfo = navigator.userAgent;
 
 let lat = "";
 let lng = "";
@@ -220,8 +218,7 @@ reader.onload = function(){
             mimeType: file.type,
             base64Data: base64,
             latitude: lat,
-            longitude: lng,
-            deviceInfo: deviceInfo 
+            longitude: lng
         })
     })
     .then(async res => {
