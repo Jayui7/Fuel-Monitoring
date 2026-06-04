@@ -1,1 +1,245 @@
+<!DOCTYPE html>
 
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fuel Monitoring System</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Segoe UI, sans-serif;
+    background:#0f172a;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.card{
+    width:100%;
+    max-width:520px;
+    background:white;
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:5px;
+    color:#0f172a;
+}
+
+.subtitle{
+    text-align:center;
+    font-size:13px;
+    color:#64748b;
+    margin-bottom:20px;
+}
+
+label{
+    font-weight:600;
+    font-size:14px;
+    color:#334155;
+}
+
+input,select{
+    width:95%;
+    padding:12px;
+    margin-top:6px;
+    margin-bottom:14px;
+    border-radius:10px;
+    border:1px solid #cbd5e1;
+    font-size:14px;
+}
+
+input[readonly]{
+    background:#f1f5f9;
+}
+
+.preview{
+    width:100%;
+    height:230px;
+    border-radius:12px;
+    border:2px dashed #cbd5e1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    overflow:hidden;
+    margin-bottom:10px;
+    background:#f8fafc;
+}
+
+.preview img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#2563eb;
+    color:white;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#1d4ed8;
+}
+
+.status{
+    text-align:center;
+    margin-top:12px;
+    font-weight:600;
+}
+
+.success{color:#16a34a;}
+.error{color:#dc2626;}
+.loading{color:#2563eb;}
+
+.gps{
+    font-size:12px;
+    background:#f1f5f9;
+    padding:10px;
+    border-radius:10px;
+    margin-bottom:12px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h1>Fuel Monitoring</h1>
+<div class="subtitle">Capture and upload fuel station photos</div>
+
+<label>Date</label> <input type="text" id="date" readonly>
+
+<label>Municipality</label> <select id="municipality">
+
+<option value="">Select Municipality</option>
+<option>STA CRUZ</option>
+<option>CANDELARIA</option>
+<option>MASINLOC</option>
+<option>PALAUIG</option>
+<option>IBA</option>
+<option>BOTOLAN</option>
+</select>
+
+<div class="gps">
+Latitude: <span id="lat">...</span><br>
+Longitude: <span id="lng">...</span>
+</div>
+
+<div class="preview" id="preview">No image captured</div>
+
+<button onclick="openCamera()">📷 Capture Photo</button>
+
+<input type="file" id="camera" accept="image/*" capture="environment" hidden>
+
+<div id="status" class="status"></div>
+
+</div>
+
+<script>
+
+const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbwSAF6C7XbKu1r5PdQGzd5Vg3nrKjFbYZAc5pWAn65hTc_sdy_-WIwAw3GU5sphrPbt/exec";
+
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("date").value = today;
+
+let lat = "";
+let lng = "";
+
+navigator.geolocation.getCurrentPosition(
+pos => {
+    lat = pos.coords.latitude;
+    lng = pos.coords.longitude;
+    document.getElementById("lat").innerText = lat;
+    document.getElementById("lng").innerText = lng;
+},
+err => {
+    document.getElementById("lat").innerText = "N/A";
+    document.getElementById("lng").innerText = "N/A";
+}
+);
+
+function openCamera(){
+    document.getElementById("camera").click();
+}
+
+document.getElementById("camera").addEventListener("change", function(e){
+
+const file = e.target.files[0];
+if(!file) return;
+
+const municipality = document.getElementById("municipality").value;
+if(!municipality){
+    alert("Select municipality first");
+    return;
+}
+
+document.getElementById("preview").innerHTML =
+`<img src="${URL.createObjectURL(file)}">`;
+
+const reader = new FileReader();
+
+reader.onload = function(){
+
+    const base64 = reader.result.split(",")[1];
+
+    document.getElementById("status").innerHTML =
+    "<span class='loading'>Uploading...</span>";
+
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            municipality,
+            dateFolder: today,
+            fileName: file.name,
+            mimeType: file.type,
+            base64Data: base64,
+            latitude: lat,
+            longitude: lng
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            document.getElementById("status").innerHTML =
+            "<span class='success'>" + data.message + "</span>";
+        } else {
+            document.getElementById("status").innerHTML =
+            "<span class='error'>" + data.message + "</span>";
+        }
+    })
+    .catch(err => {
+        document.getElementById("status").innerHTML =
+        "<span class='error'>" + err + "</span>";
+    });
+
+};
+
+reader.readAsDataURL(file);
+
+});
+
+</script>
+
+</body>
+</html>
