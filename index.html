@@ -208,10 +208,7 @@ reader.onload = function(){
 
     fetch(SCRIPT_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+        body: new URLSearchParams({
             municipality,
             dateFolder: today,
             fileName: file.name,
