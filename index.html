@@ -208,9 +208,6 @@ reader.onload = function(){
 
     fetch(SCRIPT_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
         body: JSON.stringify({
             municipality,
             dateFolder: today,
@@ -221,19 +218,26 @@ reader.onload = function(){
             longitude: lng
         })
     })
-    .then(res => res.json())
+    .then(async res => {
+        const text = await res.text();   // IMPORTANT FIX
+        console.log("RAW RESPONSE:", text);
+        return JSON.parse(text);
+    })
     .then(data => {
-        if(data.success){
+
+        if (data.success) {
             document.getElementById("status").innerHTML =
             "<span class='success'>" + data.message + "</span>";
         } else {
             document.getElementById("status").innerHTML =
             "<span class='error'>" + data.message + "</span>";
         }
+
     })
     .catch(err => {
+        console.error(err);
         document.getElementById("status").innerHTML =
-        "<span class='error'>Network Error: Check deployment</span>";
+        "<span class='error'>Backend not reachable</span>";
     });
 
 };
